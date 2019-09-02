@@ -1,5 +1,22 @@
 <template>
   <div class="mdl-cell bg-cell mdl-cell--6-col mdl-cell--8-col-tablet mdl-shadow--4dp" :style="wrong? 'border: 1px solid red;': ''">
+
+    <div id="extendedCorrection">
+
+      <div v-for="(item, key) in temp">
+        <div class="mdl-card__title">
+          <h4 class="mdl-card__title-text">"{{item.url}}" End: {{item.end}} Offset: {{item.offset}}</h4>
+        </div>
+        <div class="correctionRow">
+          <div class="offsetBox" v-for="index in preBoxes(key)" :key="index">
+            <div class="mdl-color--primary top">{{calcEpOffset(index, (-item.offset))}}</div>
+            <div class="bottom">{{index}}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     <div class="mdl-card__title mdl-card--border">
         <h2 class="mdl-card__title-text" v-html="title">
 
@@ -18,7 +35,7 @@
       <div id="offsetUi" v-if="offset && offset !== '0'">
         <div class="offsetBox" v-for="index in 5" :key="index">
           <div class="mdl-color--primary top">{{index}}</div>
-          <div class="bottom">{{calcEpOffset(index)}}</div>
+          <div class="bottom">{{calcEpOffset(index, offset)}}</div>
         </div>
         <div class="offsetBox">
           <div class="mdl-color--primary top">...</div>
@@ -101,6 +118,23 @@
         searchType: this.page.page.type,
         searchKeyword: '',
         options: api.settings.options,
+        temp: [
+          {
+            url: 'Season 1',
+            end: 12,
+            offset: 0,
+          },
+          {
+            url: 'Recap',
+            end: 15,
+            offset: -12,
+          },
+          {
+            url: 'Season 1',
+            end: 50,
+            offset: -3,
+          },
+        ]
       }
     },
     watch: {
@@ -198,8 +232,44 @@
           this.submit(item.url);
         }
       },
-      calcEpOffset: function (ep) {
-        return parseInt(ep) - parseInt(this.offset);
+      //extended
+      calcEpOffset: function (ep, offset) {
+        if(ep === '...') return '...';
+        if(ep === '∞') return '∞';
+        return parseInt(ep) - parseInt(offset);
+      },
+      preBoxes: function (key) {
+        var start = 1;
+        var end = this.temp[key].end;
+        var cut = true;
+        if (key){
+          start = this.temp[key - 1].end + 1;
+        }
+
+        if(end - start < 7){
+          cut = false;
+        }
+
+        if(key === this.temp.length-1) {
+          end = start + 4;
+          cut = false;
+        }
+
+        var ar = [];
+        for(var i = start; i < (end+1); i++){
+          if(i == (start + 3) && cut){
+            ar.push('...');
+            i = end - 2;
+          }
+          ar.push(i);
+        }
+
+        if(key === this.temp.length-1) {
+          ar.push('...');
+          ar.push('∞');
+        }
+
+        return ar;
       }
     }
   }
